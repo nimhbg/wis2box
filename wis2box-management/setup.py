@@ -88,7 +88,7 @@ setup(
     author_email='tomkralidis@gmail.com',
     maintainer='Tom Kralidis',
     maintainer_email='tomkralidis@gmail.com',
-    url='https://github.com/wmo-im/wis2box',
+    url='https://github.com/World-Meteorological-Organization/wis2box',
     install_requires=read('requirements.txt').splitlines(),
     packages=find_packages(),
     include_package_data=True,
@@ -110,9 +110,9 @@ setup(
         'Topic :: Scientific/Engineering :: Information Analysis'
     ],
     project_urls={
-        'Homepage': 'https://wmo-im.github.io/wis2box',
-        'Source Code': 'https://github.com/wmo-im/wis2box',
-        'Issue Tracker': 'https://github.com/wmo-im/wis2box/issues'
+        'Homepage': 'https://docs.wis2box.wis.wmo.int',
+        'Source Code': 'https://github.com/World-Meteorological-Organization/wis2box', # noqa
+        'Issue Tracker': 'https://github.com/World-Meteorological-Organization/wis2box/issues' # noqa
     },
     cmdclass={'test': PyTest},
     test_suite='tests.run_tests'
