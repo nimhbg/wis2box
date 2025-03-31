@@ -43,10 +43,32 @@ class SecureHashAlgorithms(Enum):
     MD5 = 'md5'
 
 
+# map commonly used file extensions to mime types
+# other file extensions will be set to 'application/octet-stream'
 DATA_OBJECT_MIMETYPES = {
+    'bufr': 'application/bufr',
     'bufr4': 'application/bufr',
-    'grib2': 'application/grib2',
-    'geojson': 'application/json'
+    'csv': 'text/csv',
+    'docx': 'application/msword',
+    'geojson': 'application/geo+json',
+    'gif': 'image/gif',
+    'grib': 'application/grib',
+    'grib2': 'application/grib',
+    'hdf': 'application/x-hdf',
+    'html': 'text/html',
+    'jpeg': 'image/jpeg',
+    'jpg': 'image/jpeg',
+    'json': 'application/json',
+    'mpg': 'video/mpeg',
+    'nc': 'application/netcdf',
+    'nc4': 'application/netcdf',
+    'pdf': 'application/pdf',
+    'png': 'image/png',
+    'ps': 'application/postscript',
+    'tif': 'image/tiff',
+    'txt': 'text/plain',
+    'xml': 'application/xml',
+    'zip': 'application/zip'
 }
 
 
@@ -141,7 +163,7 @@ class WISNotificationMessage(PubSubMessage):
             mimetype = 'application/geo+json'
         else:
             suffix = self.filepath.split('.')[-1]
-            mimetype = DATA_OBJECT_MIMETYPES.get(suffix,
+            mimetype = DATA_OBJECT_MIMETYPES.get(suffix.lower(),
                 'application/octet-stream')  # noqa
 
         LOGGER.debug(f'media type: {mimetype}')
