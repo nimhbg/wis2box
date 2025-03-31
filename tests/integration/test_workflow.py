@@ -31,6 +31,7 @@ from pathlib import Path
 from pywis_pubsub.validation import validate_message
 from requests import Session, codes
 
+
 DATADIR = Path('.').parent.absolute() / 'tests/data'
 
 URL = 'http://localhost'
