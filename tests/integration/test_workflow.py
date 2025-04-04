@@ -128,7 +128,7 @@ def test_metadata_discovery_publish():
     """Test discovery metadata publishing"""
 
     r = SESSION.get(f'{API_URL}/collections/discovery-metadata/items').json()
-    assert r['numberMatched'] == 11
+    assert r['numberMatched'] == 12
 
     r = SESSION.get(f'{API_URL}/collections/discovery-metadata/items/{ID}').json()  # noqa
 
@@ -167,6 +167,7 @@ def test_metadata_discovery_publish():
     # test access of discovery metadata from notification message
 
     centre_ids = [
+        'ca-eccc-msc-test',
         'mw-mw_met_centre-test',
         'it-meteoam',
         'dz-meteoalgerie',
@@ -298,6 +299,7 @@ def test_message_api():
 
     # test messages per test dataset
     counts = {
+        'ca-eccc-msc': 1,
         'mw-mw_met_centre': 25,
         'it-meteoam': 33,
         'dz-meteoalgerie': 29,

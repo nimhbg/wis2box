@@ -63,11 +63,15 @@ class DiscoveryMetadata(BaseMetadata):
 
         md = deepcopy(mcf)
 
-        local_topic = mcf['wis2box']['topic_hierarchy'].replace('.', '/')
-        mqtt_topic = f'origin/a/wis2/{local_topic}'
+        mqtt_topic = None
+        if 'wis2box' in mcf and 'topic_hierarchy' in mcf['wis2box']:
+            local_topic = mcf['wis2box']['topic_hierarchy'].replace('.', '/')
+            mqtt_topic = f'origin/a/wis2/{local_topic}'
 
-        LOGGER.debug('Adding topic hierarchy')
-        md['identification']['wmo_topic_hierarchy'] = local_topic
+            LOGGER.debug('Adding topic hierarchy')
+            md['identification']['wmo_topic_hierarchy'] = local_topic
+            md['identification']['wmo_data_policy'] = mqtt_topic.split('/')[5]
+
         LOGGER.debug('Adding revision date')
         md['identification']['dates']['revision'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')  # noqa
 
@@ -76,15 +80,15 @@ class DiscoveryMetadata(BaseMetadata):
             today = date.today().strftime('%Y-%m-%d')
             md['identification']['extents']['temporal'][0]['begin'] = today
 
-        LOGGER.debug('Adding data policy')
-        md['identification']['wmo_data_policy'] = mqtt_topic.split('/')[5]
-
         # md set 'distribution' to empty object, we add links later
-        md['distribution'] = {}
+        if 'distribution' not in md:
+            md['distribution'] = {}
 
         LOGGER.debug('Generating OARec discovery metadata')
         record = WMOWCMP2OutputSchema().write(md, stringify=False)
-        record['properties']['wmo:topicHierarchy'] = mqtt_topic
+        if mqtt_topic is not None:
+            record['properties']['wmo:topicHierarchy'] = mqtt_topic
+
         record['wis2box'] = mcf['wis2box']
 
         if record['properties']['contacts'][0].get('organization') is None:
@@ -125,9 +129,11 @@ class DiscoveryMetadata(BaseMetadata):
         LOGGER.info('Adding distribution links')
 
         identifier = record['id']
-        topic = record['properties']['wmo:topicHierarchy']
+        topic = record['properties'].get('wmo:topicHierarchy')
 
         links = []
+        if 'links' in record:
+            links = record['links']
         plugins = get_plugins(record)
         # check if any plugin-names contains 2geojson
         has_2geojson = any('2geojson' in plugin for plugin in plugins)
@@ -142,15 +148,18 @@ class DiscoveryMetadata(BaseMetadata):
             }
             links.append(oafeat_link)
 
-        mqp_link = {
-            'href': get_broker_public_endpoint(),
-            'type': 'application/json',
-            'name': topic,
-            'description': 'Notifications',
-            'rel': 'items',
-            'channel': topic
-        }
-        links.append(mqp_link)
+        if topic is None:
+            LOGGER.info('Do not add broker link, no topic defined')
+        else:
+            mqp_link = {
+                'href': get_broker_public_endpoint(),
+                'type': 'application/json',
+                'name': topic,
+                'description': 'Notifications',
+                'rel': 'items',
+                'channel': topic
+            }
+            links.append(mqp_link)
 
         canonical_link = {
             'href': f"{API_URL}/collections/discovery-metadata/items/{identifier}",  # noqa
@@ -312,7 +321,13 @@ def publish_discovery_metadata(metadata: Union[dict, str]):
         put_data(data_bytes, storage_path, 'application/geo+json')
 
         LOGGER.debug('Publishing message')
-        centre_id = record['properties']['wmo:topicHierarchy'].split('/')[3]
+        # check that id starts with 'urn:wmo:md:'
+        if not record['id'].startswith('urn:wmo:md:'):
+            msg = f'Invalid WCMP2 id: {record["id"]}, does not start with urn:wmo:md:'  # noqa
+            LOGGER.error(msg)
+            raise RuntimeError(msg)
+        # parse centre id from identifier
+        centre_id = record['id'].split(':')[3]
         try:
             message = publish_broker_message(record, storage_path,
                                              centre_id)
