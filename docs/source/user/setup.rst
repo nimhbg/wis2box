@@ -16,9 +16,9 @@ and download the .zip file from the Assets section.
 
 .. code-block:: bash
 
-   wget https://github.com/World-Meteorological-Organization/wis2box/releases/download/1.0.0rc1/wis2box-setup-1.0.0rc1.zip
-   unzip wis2box-setup-1.0.0rc1.zip
-   cd wis2box-1.0.0rc1
+   wget https://github.com/World-Meteorological-Organization/wis2box/releases/download/1.0.0/wis2box-setup-1.0.0.zip
+   unzip wis2box-setup-1.0.0.zip
+   cd wis2box-1.0.0
 
 
 Create initial configuration files
@@ -67,10 +67,10 @@ When running this command for the first time, you will see the following output:
 .. code-block:: bash
 
    No docker-compose.images-*.yml files found, creating one
-   Current version=Undefined, latest version=1.0.0rc1
+   Current version=Undefined, latest version=1.0.0
    Would you like to update ? (y/n/exit)
 
-Select ``y`` and the the script will create the file ``docker-compose.images-1.0.0rc1.yml`` file, download the required Docker images and start the services.
+Select ``y`` and the the script will create the file ``docker-compose.images-1.0.0.yml`` file, download the required Docker images and start the services.
 
 Downloading the images may take some time depending on your internet connection speed. This step is only required the first time you start wis2box.
 
