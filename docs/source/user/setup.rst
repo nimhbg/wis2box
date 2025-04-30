@@ -11,14 +11,13 @@ Ensure you have Docker, Docker Compose and Python installed on your host, as det
 Download
 --------
 
-Download the wis2box setup files from the `wis2box Releases`_ page.  Go to the latest release
-and download the .zip file from the Assets section.
+Download `wis2box-setup.zip` from the `wis2box Releases`_ page and unzip using the following commands:
 
 .. code-block:: bash
 
-   wget https://github.com/World-Meteorological-Organization/wis2box/releases/download/1.0.0/wis2box-setup-1.0.0.zip
-   unzip wis2box-setup-1.0.0.zip
-   cd wis2box-1.0.0
+   wget https://github.com/World-Meteorological-Organization/wis2box-release/releases/download/1.0.0/wis2box-setup.zip
+   unzip wis2box-setup.zip
+   cd wis2box
 
 
 Create initial configuration files
@@ -306,7 +305,7 @@ Next steps
 
 The next step is to prepare data ingestion into wis2box, see :ref:`data-ingest`.
 
-.. _`wis2box Releases`: https://github.com/World-Meteorological-Organization/wis2box/releases
+.. _`wis2box Releases`: https://github.com/World-Meteorological-Organization/wis2box-release/releases
 .. _`WIS2 topic hierarchy`: https://github.com/World-Meteorological-Organization/wis2-topic-hierarchy
 .. _`OSCAR`: https://oscar.wmo.int/surface
 .. _`top level domain of your country`: https://en.wikipedia.org/wiki/Country_code_top-level_domain
