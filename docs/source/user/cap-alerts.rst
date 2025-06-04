@@ -1,27 +1,26 @@
 .. _cap-alerts:
 
-Connecting the CAP Composer with a wis2box
-============================================
+Publishing CAP XML with wis2box
+===============================
 
 Overview
 --------
-The Common Alerting Protocol (CAP) is a simple but general format for exchanging all-hazard emergency alerts and public warnings over all kinds of networks, see the full specification `here <https://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2.html>`_.
 
-This section provides guidance one how one can use the `CAP Composer <https://github.com/wmo-raf/cap-composer>`_ to automate the publishing of CAP alerts to a wis2box.
+To enable the sending of alerts about severe weather and other hazards, WMO recommends the use of the Common Alerting Protocol (CAP).
+CAP is an XML-based format for exchanging all-hazard emergency alerts and public warnings over all kinds of networks, see the full specification `here <https://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2.html>`_.
 
-Requirements
-------------
-In addition to a running wis2box, you will need to install, configure, and run the CAP Composer.
+To aid in the creation of valid CAP XML, the `WMO CAP Composer <https://github.com/World-Meteorological-Organization/cap-composer>`_ software can be used. 
+The WMO CAP Composer is designed to be used by National Meteorological and Hydrological Services (NMHS) and other authorized users to create and manage CAP alerts. 
+This software can be installed on another instance to provide a web-server where users can create, edit, and publish CAP alerts.
 
-.. note::
-   For information on how to do this, please consult the `CAP Composer documentation <https://github.com/wmo-raf/cap-composer?tab=readme-ov-file#readme>`_.
+See the  `WMO CAP Composer documentation <https://cap-composer.readthedocs.io>`_ for instructions on installing and configuring the CAP Composer.
 
 Process Outline
 ---------------
-For automated publishing of CAP alerts created by the CAP Composer to a wis2box, we will need to perform the following steps:
+For automated publishing of CAP alerts created with wis2box, you will need to perform the following steps:
 
 1. *Dataset Creation:* Configure the dataset in wis2box to store the CAP alerts.
-2. *MQTT Configuration:* Configure your wis2box broker details in the CAP Composer.
+2. *Forward CAP XML to wis2box:* Configure the WMO CAP Composer to forward the CAP XML over MQTT, or ingest the CAP XML as described in the :ref:`data-ingest` section of the user guide.
 
 Dataset Creation
 ----------------
@@ -46,8 +45,11 @@ Enter the relevant missing information and create the dataset using your process
 
 Now the dataset is created, note down the dataset ID, as it will be required in the next step.
 
-MQTT Configuration
-------------------
+Forwarding CAP XML to wis2box
+-----------------------------
+
+The follow section assumes you are using the WMO CAP Composer to create and publish CAP alerts. If you are using a different system to produce CAP XML, you can skip this section and ingest the CAP XML as described in the :ref:`data-ingest` section of the user guide.
+
 Begin by logging in to the CAP Composer.
 
 .. note::
