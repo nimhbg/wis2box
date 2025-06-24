@@ -90,15 +90,37 @@ This will delete the subscription to the topic you specify and return the JSON o
 Managing subscriptions from outside the wis2box
 -----------------------------------------------
 
-The wis2downloader API-endpoint is proxied on the path `/wis2downloader` on the wis2box host-url, allowing you to interact with it using curl or other HTTP clients from any machine that can reach the wis2box host.
+The wis2downloader API endpoint is proxied on the path ``/wis2downloader`` on the wis2box host-url, allowing you to interact with it using curl or other HTTP clients from any machine that can reach the wis2box host.
 
-The wis2box-proxy by default secures the path `/wis2downloader` with a bearer token, which can be generated using the `wis2box auth` command as follows:
+The wis2box proxy by default secures the path ``/wis2downloader`` with a bearer token, which can be generated using the ``wis2box auth`` command as follows:
 
 .. code-block:: console
 
-  python3 wis2box.ctl.py execute wis2box auth add-token --path wis2downloader -y
+  python3 wis2box-ctl.py execute wis2box auth add-token --path wis2downloader -y
 
 .. _`wis2downloader`: https://github.com/World-Meteorological-Organization/wis2downloader
 
+The following example shows how to use the token in a curl command to list the current subscriptions:
 
+.. code-block:: console
 
+  curl -H "Authorization: Bearer <token>" <WIS2BOX_URL>/wis2downloader/subscriptions
+
+To make a POST request to add a subscription to the topic ``cache/a/wis2/int-wmo-test/data/core/#``, the following command would be executed:
+
+.. code-block:: console
+
+  curl -X POST -H "Content-Type: application/json" \
+       -H "Authorization: Bearer <token>" <WIS2BOX_URL>/wis2downloader/subscriptions \ 
+       -d '{"topic": "cache/a/wis2/int-wmo-test/data/core/#"}'
+
+A subscription to a topic can be deleted by running the following command:
+
+.. code-block:: console
+
+  curl -X DELETE  \
+       -H "Authorization: Bearer <token>" <WIS2BOX_URL>/wis2downloader/subscriptions/cache/a/wis2/int-wmo-test/data/core/%23
+
+.. note::
+
+   The topic in the URL must be URL-encoded (i.e. ``#`` becomes ``%23``)
