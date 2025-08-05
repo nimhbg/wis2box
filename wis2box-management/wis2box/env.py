@@ -105,6 +105,16 @@ if missing_environment_variables:
     LOGGER.error(msg)
     raise EnvironmentError(msg)
 
+if '@' in BROKER_PASSWORD:
+    msg = 'WIS2BOX_BROKER_PASSWORD must not contain "@" character'
+    LOGGER.error(msg)
+    raise EnvironmentError(msg)
+
+if '@' in STORAGE_PASSWORD:
+    msg = 'WIS2BOX_STORAGE_PASSWORD must not contain "@" character'
+    LOGGER.error(msg)
+    raise EnvironmentError(msg)
+
 
 @click.group()
 def environment():
