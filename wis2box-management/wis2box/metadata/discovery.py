@@ -24,6 +24,7 @@ from copy import deepcopy
 from datetime import date, datetime
 import json
 import logging
+import uuid
 import time
 from urllib.parse import urlparse
 
@@ -34,6 +35,7 @@ from pygeometa.schemas.wmo_wcmp2 import WMOWCMP2OutputSchema
 from pywcmp.errors import TestSuiteError
 from pywcmp.wcmp2.ets import WMOCoreMetadataProfileTestSuite2
 
+from wis2box import __version__
 from wis2box import cli_helpers
 from wis2box.api import (delete_collection_item, remove_collection,
                          setup_collection, upsert_collection_item, load_config)
@@ -250,6 +252,66 @@ def gcm() -> dict:
         'time_field': 'created',
         'title_field': 'title'
     }
+
+
+def publish_delete_notification(identifier: str):
+    """
+    Deletes a discovery metadata record from the catalogue
+
+    :param identifier: `str` of metadata identifier
+
+    :returns: `bool` of publishing result
+    """
+
+    LOGGER.info(f'Publishing delete notification for {identifier}')
+
+    # check that id starts with 'urn:wmo:md:'
+    if not identifier.startswith('urn:wmo:md:'):
+        msg = f'Invalid WCMP2 id: {identifier}, does not start with urn:wmo:md:'  # noqa
+        LOGGER.error(msg)
+        raise RuntimeError(msg)
+    # parse centre id from identifier
+    centre_id = identifier.split(':')[3]
+    topic = f'origin/a/wis2/{centre_id}/metadata'  # noqa
+    # prepare WIS message
+    links = [{
+        'href': f"{API_URL}/collections/discovery-metadata/items/{identifier}", # noqa
+        'rel': 'deletion',
+        'title': f'Delete discovery metadata for {identifier}'
+    }]
+    message = {
+        'id': str(uuid.uuid4()),
+        'type': 'Feature',
+        'conformsTo': ['http://wis.wmo.int/spec/wnm/1/conf/core'],
+        'geometry': None,
+        'properties': {
+            'data_id': f'{centre_id}/metadata/{identifier}',
+            'metadata_id': identifier,
+            'datetime': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'pubtime': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        },
+        'links': links,
+        'generated_by': f'wis2box {__version__}'
+    }
+
+    # load plugin for plugin-broker
+    defs = {
+        'codepath': PLUGINS['pubsub']['mqtt']['plugin'],
+        'url': BROKER_PUBLIC,
+        'client_type': 'publisher'
+    }
+    broker = load_plugin('pubsub', defs)
+
+    success = broker.pub(topic, json.dumps(message, default=json_serial))
+    if success:
+        try:
+            upsert_collection_item('messages', message)
+        except Exception as err:
+            msg = f'Failed to publish message to API: {err}'
+            LOGGER.error(msg)
+            raise RuntimeError(msg) from err
+
+    return success
 
 
 def publish_discovery_metadata(metadata: Union[dict, str]):
@@ -487,9 +549,16 @@ def unpublish(ctx, identifier, verbosity, force=False):
 
     click.echo(f'Un-publishing discovery metadata {identifier}')
     try:
+        publish_delete_notification(identifier)
+    except click.ClickException as err:
+        click.echo(f'Failed to send delete notification: {err}')
+        return
+    click.echo(f'Successfully sent delete notification for {identifier}')
+
+    try:
         delete_collection_item('discovery-metadata', identifier)
     except Exception:
-        raise click.ClickException('Invalid metadata identifier')
+        raise click.ClickException('Metadata identifier not present in local discovery catalogue') # noqa
     refresh_data_mappings()
     time.sleep(1)
     refresh_data_mappings()
