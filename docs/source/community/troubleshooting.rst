@@ -3,16 +3,55 @@
 Troubleshooting
 ===============
 
-This page lists several commonly seen issues and how to address them.
+This page lists common issues encountered and how to address them accordingly.
+
+Permission denied after executing "python3 wis2box-ctl.py start"
+----------------------------------------------------------------
+
+The ``wis2box-ctl.py`` utility is a Python script which manages using Docker commands in a convenient manner.  When running
+``python3 wis2box-ctl.py start``, if there is a permission denied error, 
+it is likely that the user running this command does not have the required permissions to run Docker commands.
+
+To fix this, make sure to add your user to the ``docker`` group:
+
+.. code-block:: bash
+
+    sudo usermod -aG docker $USER
+    # logout and login for changes to take effect
+
+Bind for 0.0.0.0:XX failed: port is already allocated
+-----------------------------------------------------
+
+wis2box includes a set of services that bind to specific ports on the host system.
+
+Make sure that the ports required on the host are available see :ref:`getting-started` for the list of ports used by wis2box.
+
+If you are unsure which process is using a specific port, you can try to check using one of the following commands:
+
+.. code-block:: bash
+
+    sudo lsof -i :80   # Find process using port 80
+    sudo netstat -tuln # Alternative check
 
 wis2box-ctl.py status: one or more containers are restarting
 ------------------------------------------------------------
 
-If wis2box services (containers) are restarting and/or unhealthy when executing the command ``python3 wis2box-ctl.py status``, please check the logs of the services to identify the issue. 
+If the output of the command ``python3 wis2box-ctl.py status`` displays one or more services as restarting or unhealthy, 
+they are likely failing to start due to an error in the configuration or insufficient resources resulting in a failed startup.
 
-You can use the 'Explore' option in Grafana running on port 3000 of your instance to view the logs of the wis2box services.
+If services are not running at all (status shows exited or not running), start them as follows:
 
-Open a browser and navigate to ``http://<your-instance-ip>:3000``.  Select 'Explore' from the menu on the left,
+.. code-block:: bash
+
+   python3 wis2box-ctl.py start
+
+Please check for Docker issues as described above during the startup process.
+
+If services are restarting/unhealthy, check the logs to identify the cause.
+
+If Grafana is running: 
+
+You can use the 'Explore' option in Grafana running on port 3000 of your instance to view the logs of the wis2box services. Open a browser and navigate to ``http://<your-instance-ip>:3000``.  Select 'Explore' from the menu on the left,
 then select 'wis2box-loki' as the datasource and use ``label=container_name`` as illustrated in the image below:
 
 .. image:: ../_static/troubleshooting_grafana.png
@@ -20,122 +59,104 @@ then select 'wis2box-loki' as the datasource and use ``label=container_name`` as
    :width: 1000
    :align: center
 
-Select the ``container_name`` for the service you want to inspect, click on the 'Run query' button and scroll down to view the logs.
+Select the ``container_name`` for the service to be inspected, click on the 'Run query' button and scroll down to view the logs.
+
+If Grafana is not accessible:
+
+Check logs directly from the host:
+
+.. code-block:: bash
+
+   docker compose logs --tail=200 <container_name> 
+
+Please check the logs for the following containers:
+
+- `wis2box-management`
+- `wis2box-minio`
+- `wis2box-api`
+
+Common causes: 
+
+1. ``WIS2BOX_STORAGE_PASSWORD`` is too short (MinIO fails to start, edit `wis2box.env` and set a longer password)  
+
+2. ``WIS2BOX_BROKER_PASSWORD`` contains the ``@`` character (broker authentication fails, edit `wis2box.env` and set a password without ``@``)
+
+3. Insufficient disk space (Use ``df -h`` to check disk space)
+
+4. Docker volumes present from an older wis2box installation (use ``docker volume ls`` to list volumes and ``docker volume rm <volume_name>`` to remove them)
+
+After fixing the issue, restart all services: 
+
+.. code-block:: bash
+
+   python3 wis2box-ctl.py stop
+   python3 wis2box-ctl.py start
 
 No station on map in wis2box-ui
 -------------------------------
 
-The stations displayed in the wis2box-ui per dataset are defined by the topic associated with the station.
+The stations displayed in the wis2box-ui per dataset are defined by the topic associated with the station. If the topic for this dataset has no stations associated to it, you will get the following popup:
 
-To associate a station with a topic, you can edit the station metadata using the station editor in wis2box-webapp or you can use the command ``wis2box metadata station add-topic`` to add a topic to a station.
-
-For example, to add the topic ``origin/a/wis2/my-centre-id/data/core/weather/surface-based-observations/synop`` to the station with the WIGOS station identifier ``0-20000-0-12345``, run the following command:
-
-.. code-block:: bash
-
-   python3 wis2box-ctl.py login
-   wis2box metadata station add-topic --wsi 0-20000-0-12345 origin/a/wis2/my-centre-id/data/core/weather/surface-based-observations/synop
-	
-To associated all stations defined in your station metadata with the same topic, you can use the command ``wis2box metadata station add-topic`` without specifying a station identifier:
-
-.. code-block:: bash
-
-   python3 wis2box-ctl.py login
-   wis2box metadata station add-topic origin/a/wis2/my-centre-id/data/core/weather/surface-based-observations/synop
-
-
-Topic Hierarchy validation error: Unknown file type
----------------------------------------------------
-
-Check the ``wis2box.data_mappings`` section in your discovery metadata to adjust the file extension expected by the plugins processing your dataset.
-
-If you are ingesting files with extension .bin:
-
-.. code-block:: bash
-
-        plugins:
-            bin:
-                - plugin: wis2box.data.bufr4.ObservationDataBUFR
-                  notify: true
-                  buckets:
-                    - ${WIS2BOX_STORAGE_INCOMING}
-                  file-pattern: '*'
-
-
-If you are ingesting files with extension ``.b``:
-
-.. code-block:: bash
-
-        plugins:
-            b:
-                - plugin: wis2box.data.bufr4.ObservationDataBUFR
-                  notify: true
-                  buckets:
-                    - ${WIS2BOX_STORAGE_INCOMING}
-                  file-pattern: '*'
+.. image:: ../_static/troubleshooting_no_station_pop_up.png
+   :alt: No Station popup
+   :width: 1000
+   :align: center
+   
+Consult the user guide for instructions on how to manage the stations in the wis2box-webapp.
 
 The Access Key Id you provided does not exist in our records
 ------------------------------------------------------------
 
-If you see this error when uploading data to the wis2box-incoming storage, you have provided the wrong username and/or password to access MinIO.
+If this error occurs when uploading data to the wis2box-incoming storage, the username/password credentials for MinIO access are incorrect.
+
 Check the values for ``WIS2BOX_STORAGE_USERNAME`` and ``WIS2BOX_STORAGE_PASSWORD`` set in the ``wis2box.env`` file.
-
-Topic Hierarchy validation error: No plugins for ... in data mappings
----------------------------------------------------------------------
-
-A file arrived a folder for which no matching dataset was defined in the data mappings.
-
-For dataset ``foo.bar``, store your file in the path ``/foo/bar/``.
-
-This requires either updating the data mappings in your discovery metadata or changing the target folder under which the file is received.
 
 ERROR - Failed to publish, wsi: ..., tsi: XXXXX
 -----------------------------------------------
 
 Data arrived for a station that is not present in the station metadata cache. 
 
-To add missing stations, use the station-editor in wis2box-webapp (from wis2box-1.0b5) or update the file ``metadata/station/station_list.csv`` in the wis2box data directory and run the command:
+Use the ``station editor`` in ``wis2box-webapp`` to add the missing station and associate it with the correct topic hierarchy.
 
-.. code-block:: bash
+.. image:: ../_static/wis2box-webapp-stations.png
+   :alt: Station
+   :width: 1000
+   :align: center
 
-   python3 wis2box-ctl.py login
-   wis2box metadata station publish-collection --path /data/wis2box/metadata/station/station_list.csv --topic-hierarchy <topic-hierarchy>
+After saving, the cache is refreshed and the station becomes available to pipelines.
 
+wis2box UI connection error
+---------------------------
 
-Error: no such container: wis2box-management
---------------------------------------------
+If the wis2box UI is available but no datasets are visible, check the ``WIS2BOX_URL`` and ``WIS2BOX_API_URL`` are set correctly.
 
-If the wis2box-management container is not running, the ``login`` command will fail.
-The wis2box-management container depends on other services being available before it can successfully started.
+If error ``TypeError: Failed to fetch error`` appears in the wis2box UI, this indicates that the UI could not connect to the wis2box API：
 
-Please check all services are Running using the following command:
+.. image:: ../_static/wis2box-webapp-dataset_failed_to_fetch.png
+   :alt: Fail to Fetch
+   :width: 1000
+   :align: center
 
-.. code-block:: bash
+Verify that:
 
-    python3 wis2box-ctl.py status
+1. ``WIS2BOX_API_URL`` in configuration points to the correct API endpoint (including protocol, host, and port).
 
-Possible issues are:
+2. The wis2box API service is running and accessible from a web browser.
 
-- The host ran out of diskspace, check the output of ``df -h`` and ensure there is sufficient space available
-- The directory defined by ``WIS2BOX_HOST_DATADIR`` does not contain the file ``metadata/station/station_list.csv`` or the file is invalid
-- ``WIS2BOX_STORAGE_PASSWORD`` is too short, MinIO will fail to start if you specify a ``WIS2BOX_STORAGE_PASSWORD`` of less than 8 characters
+3. Any reverse proxy or firewall is correctly forwarding requests to the API.
 
-wis2box-ui is empty
+4. After correcting the configuration, restart wis2box for the changes to take effect.
+
+wis2box UI is empty
 -------------------
 
-If when you access the wis2box UI you see the interface but no datasets are visible; check the ``WIS2BOX_URL`` and ``WIS2BOX_API_URL`` are set correctly.
+If the wis2box UI is available but no datasets are visible, and the message ``Discovery Metadata contains no datasets`` is displayed:
 
-Please note that after changing the ``WIS2BOX_URL`` and ``WIS2BOX_API_URL``, you will have to restart wis2box:
+.. image:: ../_static/wis2box-webapp-dataset_empty.png
+   :alt: UI empty
+   :width: 1000
+   :align: center
 
-.. code-block:: bash
+This means the collection ``discovery-metadata`` in the wisbox API is empty, due to no datasets having been created or Docker volume ``wis2box_project_es-data`` was removed.
 
-  python3 wis2box-ctl.py stop
-  python3 wis2box-ctl.py start
-
-..and then repeat the commands for adding your dataset and publishing your metadata, to ensure the URLs are updated in the records accordingly:
-
-.. code-block:: bash
-
-  python3 wis2box-ctl.py login
-  wis2box data add-collection /data/wis2box/metadata/discovery/metadata-synop.yml
-  wis2box metadata discovery publish /data/wis2box/metadata/discovery/metadata-synop.yml
+Consult the user guide for instructions on creating datasets.
