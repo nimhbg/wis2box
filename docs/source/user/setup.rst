@@ -43,7 +43,7 @@ Run the following command to create the initial configuration files for your wis
    The script will also propose to automatically create passwords for ``WIS2BOX_STORAGE_PASSWORD`` and ``WIS2BOX_BROKER_PASSWORD``.
    These passwords are for internal use only within the wis2box, and it is recommended to accept the randomly generated passwords.
 
-The script will have created a file "wis2box.env" with the configuration settings required to start your wis2box.
+The script will have created a file ``wis2box.env`` with the configuration settings required to start your wis2box.
 
 .. note::
 

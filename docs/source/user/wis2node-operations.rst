@@ -55,6 +55,6 @@ If the WIS2 Global Discovery Catalogue contains outdated metadata records, use t
    python3 wis2box-ctl.py login
    wis2box metadata discovery unpublish urn:wmo:md:my-centre-id:my-local-id
 
-Ensure to replace `urn:wmo:md:my-centre-id:my-local-id` with the actual identifier of the metadata record as recorded in the WIS2 Global Discovery Catalogue.
+Ensure to replace ``urn:wmo:md:my-centre-id:my-local-id`` with the actual identifier of the metadata record as recorded in the WIS2 Global Discovery Catalogue.
 
 .. _`WIS2 Node Registration`: https://community.wmo.int/en/activity-areas/wis/WIS2-overview#WIS2_Node_Registration
