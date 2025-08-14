@@ -3,10 +3,10 @@
 Data pipeline plugins
 =====================
 
-Driven by topic hierarchies, wis2box is a plugin architecture orchestrating all the
+Driven by datasets, wis2box is a plugin architecture orchestrating all the
 required components of a WIS2 Node.  wis2box also provides a data pipeline plugin
-architecture which allows for users to define a plugin based on a topic hierarchy to
-publish incoming data (see :ref:`data-mappings` for more information).
+architecture which allows for users to define a plugin based on a dataset identifier 
+to publish incoming data (see :ref:`data-mappings` for more information).
 
 
 .. seealso:: :ref:`extending-wis2box`
@@ -43,6 +43,14 @@ In this the example `aws-template` refers to the `aws_example.json` template def
 
 Environment variables can be set in `wis2box.env` to customize the behavior of the csv2bufr-plugin within the wis2box, see `csv2bufr-environment-variables`_ for the full list of environment variables.
 
+The wis2box API will compare the location in the BUFR produced by the csv2bufr plugin with the location of the station in the wis2box station list.
+For fixed land stations, if the station location and data location are more than ``WIS2BOX_OBSERVATION_DISTANCE_THRESHOLD`` meters apart, the data will not be published.
+The default value for ``WIS2BOX_OBSERVATION_DISTANCE_THRESHOLD`` is 1000 meters, but you can change this in `wis2box.env`:
+
+.. code-block:: bash
+
+    WIS2BOX_OBSERVATION_DISTANCE_THRESHOLD=20000  # set the threshold to 20 km
+
 Using the csv2bufr plugin with a custom template
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -72,6 +80,14 @@ Exit the container after creating the custom template:
     exit
 
 You can edit the template file on the host system at `$WIS2BOX_HOST_DATADIR/mappings/my_own_template.json` to customize the template further.
+
+.. note::
+
+    After adding a new custom template, you need to restart the wis2box-api container for the changes to take effect:
+    
+    .. code-block:: bash
+
+       python3 wis2box-ctl.py restart wis2box-api
 
 After creating the custom template, you can use it in the csv2bufr plugin configuration in MCF as follows:
 

@@ -52,11 +52,15 @@ The user guide provides step-by-step instructions to start running a WIS2 Node u
 
    user/getting-started
    user/setup
+   user/setup-datasets
+   user/setup-stations
+   user/recommended
    user/data-ingest
    user/gts-headers-in-wis2
    user/public-services-setup
-   user/downloading-data
+   user/wis2node-operations
    user/cap-alerts
+   user/downloading-data
 
 Reference guide
 ===============

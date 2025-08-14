@@ -3,10 +3,10 @@
 Installation and configuration
 ==============================
 
-This section summarizes the steps required to install a wis2box instance and setup your own datasets using initial configuration files
+This section summarizes the steps required to install a wis2box instance and setup datasets using the initial configuration files
 provided by using the ``wis2box-create-config.py`` script.
 
-Ensure you have Docker, Docker Compose and Python installed on your host, as detailed in :ref:`getting-started`.
+Ensure that Docker, Docker Compose and Python are installed on the host, and that the system and :ref:`network requirements<getting-started>` are met.
 
 Download
 --------
@@ -120,192 +120,64 @@ Check that all services are Up and not unhealthy:
 
 Refer to the :ref:`troubleshooting` section if this is not the case.
 
+Check HTTP interfaces on web-proxy
+----------------------------------
 
-Runtime configuration
----------------------
+wis2box includes the *web-proxy*-service, which is a web proxy based on `nginx`_.  It is configured to listen on port ``80`` and port ``443`` on the host, and it proxies requests to the various services in wis2box.
 
-Once wis2box is running you can prepare authentication tokens for updating your stations and running processes in the wis2box-webapp.
+To verify that the web-proxy is running and accepting connections, check the following URLs in a web browser:
 
-Login to the wis2box-management container
+Check the wis2box API is available at ``WIS2BOX_URL/oapi``:
 
-.. code-block:: bash
-
-   python3 wis2box-ctl.py login
-
-To create a token for running wis2box processes:
-
-.. code-block:: bash
-
-   wis2box auth add-token --path processes/wis2box
-
-Record the token value displayed in a safe place, you will need it to run processes in the next section.
-
-To create a token for updating stations:
-
-.. code-block:: bash
-
-   wis2box auth add-token --path collections/stations
-
-Record the token value displayed in the output of the command above. You will use this token to update stations in the next section.
-
-You can now logout of wis2box-management container:
-
-.. code-block:: bash
-
-   exit
-
-Accessing the wis2box-webapp
-----------------------------
-
-The following sections will explain how to create datasets and stations in your wis2box using the wis2box-webapp.
-
-You can access the wis2box-webapp by visiting the URL you specified during the configuration step in your web browser and adding ``/wis2box-webapp`` to the URL.
-For example, if you specified ``http://mywis2box.example.com`` as the URL, you can access the wis2box-webapp by visiting ``http://mywis2box.example.com/wis2box-webapp``.
-
-The wis2box-webapp used basic authentication to control access to the webapp.  The default username is ``wis2box-user`` and the password is the value specified when running the script ``wis2box-create-config.py``.
-
-The values of ``WIS2BOX_WEBAPP_USERNAME`` and ``WIS2BOX_WEBAPP_PASSWORD`` can be found in the ``wis2box.env`` file as follows:
-
-.. code-block:: bash
-
-   cat wis2box.env | grep WIS2BOX_WEBAPP
-
-
-.. _adding-datasets:
-
-Adding datasets
----------------
-
-In order to publish data using the wis2box you need to create a dataset with discovery metadata and data mappings plugins. The metadata provides the data description needed for users to discover your data when searching the WIS2 Global Discovery Catalogue.
-Data mappings plugins are used to transform the data from the input source format before the data is published.
-
-You can use the wis2box-webapp to create datasets interactively using the dataset editor. Open the wis2box-webapp in your web browser and select the dataset editor from the menu on the left
-
-You should see the following page:
-
-.. image:: ../_static/wis2box-webapp-dataset_editor.png
+.. image:: ../_static/wis2box-api.png
   :width: 1000
-  :alt: wis2box webapp dataset editor page
+  :alt: wis2box API homepage
 
-To create a new dataset select "Create new" from the dataset editor page.
+Check the wis2box user interface is available at ``WIS2BOX_URL/`` (note that no datasets are configured yet):
 
-A popup will appear where you can define your "centre-id" and the type of dataset you want to create:
-
-.. image:: ../_static/wis2box-webapp-dataset_editor_continuetoform.png
-  :width: 600
-  :alt: wis2box webapp dataset editor page, continue to form
-
-.. note::
-
-   Your centre-id should start with the ccTLD of your country, followed by a - and an abbreviated name of your organization, for example ``fr-meteofrance``.
-   The centre-id has to be lowercase and use alphanumeric characters only.
-   The dropdown list shows all currently registered centre-ids on WIS2 as well as any centre-id you have already created in wis2box.
-
-There are multiple predefined datasets, such as "weather/surface-based-observations/synop", "weather/surface-based-observations/temp", and "weather/advisories-warnings".
-We recommend using these particular predefined dataset types to publish your "synop", "temp", and CAP alert data, respectively.
-The predefined dataset will predefine the topic and data mappings for you.
-If you want to create a dataset for a different topic, you can select "other" and define the topic and data mappings yourself.
-
-Please select "Continue to form" to start defining your dataset.
-
-When defining your dataset, you will need to specify a Local ID, which serves as a short and unique identifier for the dataset within your organization. The Local ID is used to generate the WCMP2 identifier for your metadata record.
-
-.. image:: ../_static/wis2box-webapp-dataset_editor_local_id.png
-  :width: 800
-  :alt: wis2box webapp dataset editor page, localID
-
-.. note::
-
-   If you do not provide a Local ID a randomly generated ID will be assigned. It is strongly suggested to define your own human-readable ID instead. Once the dataset is created, the Local ID cannot be changed. To use a different Local ID, you will need to delete and recreate the dataset.
-
-Make sure to provide a "description" for your dataset, review and add keywords and choose an appropriate bounding box.
-You will also need to provide some contact information for the dataset.
-
-Before publishing the new dataset make to click "Validate form" to check if all required fields are filled in:
-
-.. image:: ../_static/wis2box-webapp-dataset_editor_validateform.png
+.. image:: ../_static/wis2box-ui-new-install.png
   :width: 1000
-  :alt: wis2box webapp dataset editor page, validate form
+  :alt: wis2box user interface, no dataset
 
-Each dataset is associated with data-mappings plugins that transform the data from the input source format before the data is published.
-If you are using the predefined dataset types for "synop", "temp", or CAP alert data, the data mappings plugins will be predefined for you.
-Otherwise, you will need to define the data mappings plugins for your dataset.
+Check the proxy to the "wis2box-public" bucket from the storage service is available at ``WIS2BOX_URL/data/``
+(make sure to add a trailing slash after ``data``):
 
-Finally, click "submit" to publish the dataset:
+.. image:: ../_static/wis2box_url_slash_data.png
+  :width: 1000
+  :alt: wis2box public bucket
 
-.. image:: ../_static/wis2box-webapp-dataset_editor_success.png
-  :width: 800
-  :alt: wis2box webapp dataset editor page, submit
+Check MQTT connection
+----------------------
 
-.. note::
+wis2box includes the *wis2box-broker* service, which is a MQTT broker based on `mosquitto`_.
 
-   You can also create datasets by defining MCF files in the ``metadata/discovery`` directory in your wis2box host directory and publish them from the CLI.
-   For more information on publishing datasets using MCF files, see the reference documentation.
+Check that the wis2box-broker is running and accepting connections using `MQTT Explorer`_ or by using a command line tool such as `mosquitto_sub`.
 
-Adding station metadata
------------------------
+Two sets of MQTT users are automatically pre-configured when first starting wis2box:
 
-The next step is to add station metadata to your wis2box. This can be done interactively using the wis2box-webapp or by bulk inserting stations from a CSV file.
+**everyone**
 
-Please note only data for stations that have been added to wis2box will be ingested and result in WIS2 notifications being published.
+- This user is used for public access to the MQTT broker and has readonly access on the ``origin/a/wis2/#`` topic. 
+- This user can be used to allow the WIS2 Global Broker to subscribe to the wis2box.
+- ``username=everyone``, ``password=everyone``
 
-If you want to bulk insert station metadata from a CSV file, please refer to the `Bulk inserting stations from CSV`_ section.
+**wis2box**
 
-The station editor can be accessed in the wis2box-webapp by selecting "Stations" from the menu on the left.
+- This user is used by wis2box services to publish data to the MQTT broker and has read/write access to ``origin/a/wis2/#`` topic.
+- ``username=wis2box``, ``password=WIS2BOX_BROKER_PASSWORD`` (as defined in ``wis2box.env``).
 
-.. image:: ../_static/wis2box-webapp-stations.png
-  :width: 800
-  :alt: wis2box webapp stations page
+The wis2box MQTT broker is available on port ``1883`` on the host.
 
-Select "Create new" to start adding a new station.
+The web-proxy also enables access to the MQTT broker via WebSockets on port ``80`` on the path ``/mqtt``.
 
-You need to provide a WIGOS station identifier that will be used to import information about the station from OSCAR:
-
-.. image:: ../_static/wis2box-webapp-stations-search.png
-  :width: 800
-  :alt: wis2box webapp station editor page, import station from OSCAR
-
-You can search for the station in OSCAR by providing the WIGOS station identifier and clicking "search".
-If the station is found a new form will be displayed with the station information.
-If the station is not found you have the option to fill the station form manually.
-
-Check the form for any missing information.
-You will need to select a WIS2 topic you would like to associate the station with.
-The station editor will show you the available topics to choose from based on the datasets you have created.
-If you don't see the topic you want to associate the station with, you need to create a dataset for that topic first.
-
-To store the station metadata  click "save" and provide the 'collections/stations' token you created in the previous section:
-
-.. image:: ../_static/wis2box-webapp-stations-save.png
-  :width: 800
-  :alt: wis2box webapp station editor page, submit
-
-
-Bulk inserting stations from CSV
---------------------------------
-
-You can also bulk insert a set of stations from a CSV file, by defining the stations in ``mystations.csv`` in your wis2box host directory and running the following command:
-
-.. code-block:: bash
-
-   python3 wis2box-ctl.py login
-   wis2box metadata station publish-collection --path /data/wis2box/mystations.csv --topic-hierarchy origin/a/wis2/mw-mw_met_centre-test/data/core/weather/surface-based-observations/synop
-
-.. note::
-
-   The ``path`` argument refers to the path of the CSV file within the wis2box-management container.
-   The directory defined by WIS2BOX_HOST_DATADIR is mounted as /data/wis2box in the wis2box-management container.
-
-   The ``topic-hierarchy`` argument refers to the WIS2 topic hierarchy you want to associate the stations with.
-
-After doing a bulk insert please review the stations in wis2box-webapp to ensure the stations were imported correctly.
+See the section :ref:`public-services-setup` for information on adding SSL encryption to the MQTT broker.
 
 Next steps
 ----------
 
-The next step is to prepare data ingestion into wis2box, see :ref:`data-ingest`.
+The next step is to :ref:`configure datasets<setup-datasets>`.
 
-.. _`wis2box Releases`: https://github.com/World-Meteorological-Organization/wis2box-release/releases
-.. _`WIS2 topic hierarchy`: https://github.com/World-Meteorological-Organization/wis2-topic-hierarchy
-.. _`OSCAR`: https://oscar.wmo.int/surface
-.. _`top level domain of your country`: https://en.wikipedia.org/wiki/Country_code_top-level_domain
+.. _`MQTT Explorer`: https://mqtt-explorer.com
+.. _`wis2box releases`: https://github.com/World-Meteorological-Organization/wis2box-release/releases
+.. _`nginx`: https://www.nginx.com
+.. _`mosquitto`: https://mosquitto.org
