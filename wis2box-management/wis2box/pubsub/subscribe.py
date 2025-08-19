@@ -205,6 +205,7 @@ class WIS2BoxSubscriber:
             LOGGER.debug('Unpublishing dataset')
             identifier = topic.split('/')[-1]
             delete_collection_item('discovery-metadata', identifier)
+            discovery_metadata.publish_delete_notification(identifier)
             if message.get('force', False):
                 LOGGER.info('Deleting data')
                 remove_collection(identifier)
