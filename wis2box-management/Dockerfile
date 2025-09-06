@@ -66,14 +66,11 @@ RUN cd /app \
     # install wis2box plugins, if defined
     && $PIP_PLUGIN_PACKAGES \
     # add wis2box user
-    && useradd -ms /bin/bash wis2box
+    && useradd -ms /bin/bash wis2box \
+    # install wis2box.cron as root's crontab
+    && crontab docker/wis2box.cron
 
 WORKDIR /home/wis2box
-
-# add wis2box.cron to crontab
-COPY ./docker/wis2box.cron /etc/cron.d/wis2box.cron
-
-RUN chmod 0644 /etc/cron.d/wis2box.cron && crontab /etc/cron.d/wis2box.cron
 
 COPY ./docker/entrypoint.sh /entrypoint.sh
 
