@@ -198,7 +198,7 @@ When the dataset is published, the wis2box-webapp will create a WCMP2 record and
 
    To verify the metadata publication use an MQTT client subscribed to your wis2box-broker before clicking "SUBMIT".
 
-Provide the authentication token created earlier in the "Authentication Token" field amd click "SUBMIT" to publish the dataset:
+Provide the authentication token created earlier in the "Authentication Token" field and click "SUBMIT" to publish the dataset:
 
 .. image:: ../_static/wis2box-webapp-dataset_editor_success.png
   :width: 800
