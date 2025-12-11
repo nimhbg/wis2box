@@ -213,15 +213,17 @@ class WISNotificationMessage(PubSubMessage):
         if gts is not None:
             self.message['properties']['gts'] = gts
 
-        if self.length < 4096:
-            LOGGER.debug('Including data inline via properties.content')
+        # only bother encoding small files inline
+        if self.length < 3070:
             content_value = base64.b64encode(self.filebytes)
-
-            self.message['properties']['content'] = {
-                'encoding': 'base64',
-                'value': content_value,
-                'size': self.length
-            }
+            # check length again after encoding
+            if len(content_value) < 4096:
+                LOGGER.debug('Including data inline via properties.content')
+                self.message['properties']['content'] = {
+                    'encoding': 'base64',
+                    'value': content_value,
+                    'size': self.length
+                }
 
         if wigos_station_identifier is not None:
             self.message['properties']['wigos_station_identifier'] = wigos_station_identifier  # noqa
@@ -232,12 +234,18 @@ class WISNotificationMessage(PubSubMessage):
             }
             self.message['links'].append(link)
 
-        # check if metadata record exists and has access control
+        # check if metadata record exists
         if metadata_id is not None:
             LOGGER.debug(f'Find metadata record with id={metadata_id}')
             try:
                 oar = Records(DOCKER_API_URL)
                 record = oar.collection_item('discovery-metadata', metadata_id)
+                # check cache if false, update message to indicate no caching
+                cache = record['wis2box'].get('cache', True)
+                if not cache:
+                    LOGGER.debug('Setting message to no-cache')
+                    self.message['properties']['cache'] = False
+                # if record has access control, update message links
                 if record and record['wis2box'].get('has_auth'):
                     LOGGER.debug('Updating message with access control')
                     for link in self.message['links']:
