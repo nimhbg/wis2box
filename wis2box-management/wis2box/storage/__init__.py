@@ -81,7 +81,8 @@ def get_data(path: str) -> Any:
     LOGGER.debug(f'Connecting to storage: {name}')
     storage = load_plugin('storage', defs)
 
-    identifier = storage_path.replace(name, '')
+    # remove name and leading /
+    identifier = storage_path.replace(name, '').lstrip('/')
 
     LOGGER.debug(f'Fetching data from {identifier}')
     return storage.get(identifier)
@@ -142,7 +143,7 @@ def put_data(data: bytes, path: str,
     LOGGER.debug(f'Connecting to storage: {name}')
     storage = load_plugin('storage', defs)
 
-    identifier = storage_path.replace(name, '')
+    identifier = storage_path.replace(name, '').lstrip('/')
 
     LOGGER.debug(f'Storing data into {identifier}')
     return storage.put(data, identifier, content_type)
