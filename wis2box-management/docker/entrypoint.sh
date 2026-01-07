@@ -26,32 +26,19 @@ echo "START /entrypoint.sh"
 
 set -e
 
-#ensure environment-variables are available for cronjob
-printenv | grep -v "no_proxy" >> /etc/environment
-
-# create .ssh directory if not exists
-if [ ! -d /data/wis2box/.ssh ]; then
-    echo "Creating /data/wis2box/.ssh"
-    mkdir /data/wis2box/.ssh
-fi
-
-# create private key file if not exists
-if [ ! -f /data/wis2box/.ssh/id_rsa ]; then
-    echo "Creating /home/wis2box/.ssh/id_rsa"
-    # generate private key
-    ssh-keygen -t rsa -b 4096 -f /data/wis2box/.ssh/id_rsa -N ""
-    chmod 600 /data/wis2box/.ssh/id_rsa
-
-    # wait for http://minio:9000/minio/health/live to be available
-    while ! curl -s http://minio:9000/minio/health/live; do
-        echo "Waiting for minio to be available..."
-        sleep 1
-    done
+# wait for http://minio:9000/minio/health/live to be available
+while ! curl -s http://minio:9000/minio/health/live; do
+    echo "Waiting for minio to be available..."
+    sleep 1
+done
     echo "MinIO is available, proceed with setup"
-fi
 
 # run pywcmp bundle sync in background to avoid hanging in case of network issues
 pywcmp bundle sync &
+
+# start supercronic to run cron jobs
+echo "Starting cron"
+/usr/local/bin/supercronic -quiet /app/docker/wis2box.cron &
 
 # wis2box commands
 # TODO: avoid re-creating environment if it already exists
@@ -65,10 +52,6 @@ wis2box api setup
 # test the wis2box is not misconfigured
 wis2box environment test
 
-# ensure cron is running
-service cron start
-service cron status
-
 # check if WIS2BOX_WEBAPP_USERNAME and WIS2BOX_WEBAPP_PASSWORD are set, otherwise set them
 if [ -z "$WIS2BOX_WEBAPP_USERNAME" ]; then
     echo "WARNING: WIS2BOX_WEBAPP_USERNAME is not set in wis2box.env, using WIS2BOX_WEBAPP_USERNAME=wis2box-user"
@@ -79,22 +62,22 @@ if [ -z "$WIS2BOX_WEBAPP_PASSWORD" ]; then
     export WIS2BOX_WEBAPP_PASSWORD=${WIS2BOX_STORAGE_PASSWORD}
 fi
 
-# create directory /home/wis2box/.htpasswd/ if not exists
-if [ ! -d /home/wis2box/.htpasswd/ ]; then
-    echo "Creating /home/wis2box/.htpasswd/"
-    mkdir /home/wis2box/.htpasswd/
+# create directory /data/wis2box/nginx/.htpasswd/ if not exists
+if [ ! -d /data/wis2box/.htpasswd/ ]; then
+    echo "Creating /data/wis2box/.htpasswd/"
+    mkdir /data/wis2box/.htpasswd/
 fi
 
-# create /home/wis2box/.htpasswd/webapp if not exists
+# create /data/wis2box/.htpasswd/webapp if not exists
 # otherwise, delete the file and create it
 # in case of failure continue
-if [ ! -f /home/wis2box/.htpasswd/webapp ]; then
-    echo "Creating /home/wis2box/.htpasswd/webapp"
-    htpasswd -bc /home/wis2box/.htpasswd/webapp $WIS2BOX_WEBAPP_USERNAME $WIS2BOX_WEBAPP_PASSWORD || true
+if [ ! -f /data/wis2box/.htpasswd/webapp ]; then
+    echo "Creating /data/wis2box/.htpasswd/webapp"
+    htpasswd -bc /data/wis2box/.htpasswd/webapp $WIS2BOX_WEBAPP_USERNAME $WIS2BOX_WEBAPP_PASSWORD || true
 else
-    rm /home/wis2box/.htpasswd/webapp
-    echo "Re-creating /home/wis2box/.htpasswd/webapp"
-    htpasswd -bc /home/wis2box/.htpasswd/webapp $WIS2BOX_WEBAPP_USERNAME $WIS2BOX_WEBAPP_PASSWORD || true
+    rm /data/wis2box/.htpasswd/webapp
+    echo "Re-creating /data/wis2box/.htpasswd/webapp"
+    htpasswd -bc /data/wis2box/.htpasswd/webapp $WIS2BOX_WEBAPP_USERNAME $WIS2BOX_WEBAPP_PASSWORD || true
 fi
 
 # Check if the path is restricted and capture the output
