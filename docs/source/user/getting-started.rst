@@ -16,9 +16,54 @@ When choosing the environment for the wis2box, consider the following:
 * In order for the wis2box instance to function as a WIS2 Node, HTTP and MQTT ports on the instance need to be accessible over the public Internet
 * Ensure that the system providing input data can access the wis2box instance
 
-.. note::
-    
-    Before exposing the wis2box to the Internet, please review the 'security considerations' section in the :ref:`public-services-setup` section. 
+.. important::
+
+  When using a wis2box instance as a WIS2 Node, it is **not recommended to use a host within your internal network**. Since a wis2box instance must be exposed to the public Internet in order to operate as a WIS2 Node, it is strongly recommended to decouple deployment from your internal network.
+
+  Please consider setting up wis2box on cloud infrastructure or in another suitably isolated, Internet-facing environment such as a **perimeter network (DMZ)** and setup a secure method to **push** data from your internal network to the wis2box instance.
+
+  Before exposing the wis2box to the Internet, please review the 'security considerations' section in the :ref:`public-services-setup` section. 
+
+
+External resources used by wis2box
+----------------------------------
+
+Make sure that wis2box can access content from *GitHub*, *GitHub Container Registry*, and *Docker Hub*; to pull the required Docker images and updates.
+
+To verify WIS2 compliance, wis2box will use configurations, schemas and supporting files on *iana.org* and *codes.wmo.int* which needs to be reachable from the wis2box instance at runtime.
+
+The following domains must be reachable from your instance for wis2box to function correctly:
+
+.. list-table::
+  :header-rows: 1
+  :widths: 30 70
+
+  * - Domain
+    - Description
+  * - ``ghcr.io``
+    - GitHub Container Registry
+  * - ``pkg-containers.githubusercontent.com``
+    - GitHub Packages for containers
+  * - ``containers.githubusercontent.com``
+    - GitHub-hosted container resources
+  * - ``github.com``
+    - GitHub repository access
+  * - ``api.github.com``
+    - GitHub API access
+  * - ``registry-1.docker.io``
+    - Docker Hub registry
+  * - ``auth.docker.io``
+    - Docker Hub authentication
+  * - ``index.docker.io``
+    - Docker Hub index
+  * - ``hub.docker.com``
+    - Docker Hub website
+  * - ``iana.org``
+    - Standards reference
+  * - ``codes.wmo.int``
+    - WMO code registry
+  * - ``oscar.wmo.int``
+    - WMO OSCAR database
 
 Network requirements
 --------------------

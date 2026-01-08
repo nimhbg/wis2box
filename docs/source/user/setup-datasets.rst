@@ -170,24 +170,34 @@ If you selected a template, the data mappings plugins will be pre-populated with
 For example, if the "weather/surface-based-observations/synop" template is selected, the data mappings plugins will be pre-populated with the following plugins:
 
 .. image:: ../_static/wis2box-webapp-dataset_editor_synop_plugins.png
-   :width: 800
+   :width: 1000
    :alt: wis2box webapp dataset editor page, data mappings plugins pre-defined for synop dataset.
+
+.. note::
+
+   If  "core" is selected as a data policy, data will be cached by the WIS2 Global Cache by default. Uncheck the box below the "Data Mappings" section if you wish for data NOT to be cached by the WIS2 Global Cache.
+   
+   In this case, users will directly download core data from your HTTP storage endpoint, which must be able to handle the expected data traffic and be accessible to any incoming connections.
 
 If "other" is selected as the template, add at least one data mappings plugin to the dataset by clicking the "Add a plugin" button:
 
 .. image:: ../_static/wis2box-webapp-dataset_editor_add_plugin.png
-   :width: 800
+   :width: 1000
    :alt: wis2box webapp dataset editor page, add a plugin
 
 To publish data without any transformation or data validation, select the "Universal" plugin:
 
 .. image:: ../_static/wis2box-webapp-dataset_editor_universal_plugin.png
-   :width: 800
+   :width: 700
    :alt: wis2box webapp dataset editor page, universal plugin
 
 Verify that the "File Extension" and "File Pattern" are set to match the data files that will be uploaded to the `wis2box-incoming` bucket in MinIO storage.
 
 Note that the "File Pattern" may be used to extract additional metadata from the file name, such as the datetime for the published data.
+
+.. note::
+
+   See the :ref:`extending-wis2box` section for more information on available data mappings plugins and how to create custom plugins.
 
 Publishing the dataset
 ----------------------
